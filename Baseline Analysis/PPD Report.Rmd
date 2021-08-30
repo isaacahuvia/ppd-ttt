@@ -1,0 +1,514 @@
+---
+title: "PPD Report"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+library(easypackages)
+libraries("tidyverse", "magrittr", "ggplot2", "scales", "corrplot", "knitr", "kableExtra", "poLCA", "conflicted")
+walk(c("filter", "select", "count", "group_by"), ~ conflict_prefer(., "dplyr"))
+
+knitr::opts_chunk$set(echo = F, message = F)
+
+rm(list = ls())
+
+df <- readRDS(file = "G:\\Shared drives\\Psychology_JSLab\\Projects\\In_Progress\\TRACK_to_TREAT_P1\\Data\\Processed_Data\\PPD Data\\Clean.rds")
+lca <- readRDS(file = "G:\\Shared drives\\Psychology_JSLab\\Projects\\In_Progress\\TRACK_to_TREAT_P1\\Data\\Processed_Data\\PPD Data\\LCA.rds")
+classes <- readRDS(file = "G:\\Shared drives\\Psychology_JSLab\\Projects\\In_Progress\\TRACK_to_TREAT_P1\\Data\\Processed_Data\\PPD Data\\LCA Classes.rds")
+```
+
+# Research Question 1
+
+## What symptoms do high-symptom adolescents and their parents believe are a part of depression?
+
+```{r}
+df %>%
+  select(contains("def")) %>%
+  pivot_longer(def.down_child:def.none_child) %>%
+  group_by(name) %>%
+  summarize(mean = mean(value)) %>%
+  mutate(name = case_when(name == "def.down_child" ~ "Feeling down, depressed, irritable, or hopeless",
+                          name == "def.interest_child" ~ "Feeling little interest or pleasure in doing things",
+                          name == "def.sleep_child" ~ "Having trouble falling asleep, staying asleep,\nor sleeping too much",
+                          name == "def.appetite_child" ~ "Having a poor appetite, weight loss, or overeating",
+                          name == "def.energy_child" ~ "Feeling tired, or having little energy",
+                          name == "def.self_child" ~ "Feeling bad about yourself- or feeling that you are a failure,\nor that you have let yourself or your family down",
+                          name == "def.concentrate_child" ~ "Having trouble concentrating on things like school work,\nreading, or watching TV",
+                          name == "def.pace_child" ~ "Moving or speaking so slowly that other people could have\nnoticed, or the opposite - being so fidgety or restless that\nyou were moving around a lot more than usual",
+                          name == "def.suicide_child" ~ "Having thoughts that you would be better off dead,\nor of hurting yourself in some way",
+                          name == "def.other_child" ~ "Something else",
+                          name == "def.none_child" ~ "None of these")) %>%
+  ggplot() +
+    geom_bar(aes(fct_reorder(name, mean), mean, fill = name), stat = "identity") +
+    geom_hline(yintercept = .25, color = "#4F4C4C", linetype = "dashed") + 
+    geom_hline(yintercept = .50, color = "#4F4C4C", linetype = "dashed") + 
+    geom_hline(yintercept = .75, color = "#4F4C4C", linetype = "dashed") + 
+    scale_fill_discrete(guide = NULL) +
+    scale_x_discrete(name = NULL) +
+    scale_y_continuous(name = "Percent Endorse", label = scales::percent, limits = c(0, 1)) + 
+    # ggtitle("What Symptoms Are a Part of\nDepression According to Youth?") +
+    coord_flip() +
+    theme_classic()
+```
+
+```{r}
+df %>%
+  select(LSMHID, contains("def")) %>%
+  pivot_longer(def.down_child:def.suicide_child) %>%
+  group_by(LSMHID) %>%
+  summarize(sum = sum(value)) %>%
+  ggplot() +
+    geom_histogram(aes(sum), binwidth = 1, fill = "#BAD0BF", color = "white") +
+    scale_x_continuous(name = "Number of Symptoms", breaks = 0:9) +
+    scale_y_continuous(name = "Count", limits = c(0, 30)) + 
+    ggtitle("Number of Symptoms Included (of 9)") +
+    theme_classic()
+```
+
+### Latent Class Analysis
+
+```{r}
+temp <- df %>%
+  left_join(classes) %>%
+  group_by(class) %>%
+  summarise(pct = n() / nrow(.)) %>%
+  mutate(name = paste0("class", class)) %>%
+  select(name, pct)
+
+lca$probs %>%
+  map(~ {.[, 2]} %>%
+        as_tibble_row()) %>%
+  bind_rows(.id = "var") %>%
+  rename_all(~ gsub(":|\\s", "", .)) %>%
+  mutate(var = gsub("^def.|_child$", "", var)) %>%
+  pivot_longer(class1:class3) %>%
+  left_join(temp) %>%
+  mutate(class = paste0("Class ", gsub("[^0-9]", "", name), " (", percent(pct), ")")) %>%
+  ggplot(aes(var, value, group = class, color = class)) +
+    geom_point(size = 4) +
+    geom_line(size = 2) +
+    scale_y_continuous(name = NULL, label = scales::percent) +
+    scale_x_discrete(name = "Symptom", 
+                     limits = c("down", "self", "concentrate", "energy", "sleep", "interest", "suicide", "appetite", "pace"),
+                     labels = c("down" = "Feeling\nDown",
+                                "self" = "Self-Esteem",
+                                "concentrate" = "Difficulty\nConcentrating",
+                                "energy" = "Low Energy",
+                                "sleep" = "Trouble\nSleeping",
+                                "interest" = "Little\nInterest",
+                                "suicide" = "SI",
+                                "appetite" = "Poor\nAppetite",
+                                "pace" = "Psychomotor")) +
+    scale_color_discrete(name = NULL) +
+    theme_classic()
+```
+
+```{r}
+df %>%
+  left_join(classes) %>%
+  group_by(class) %>%
+  summarise(pct = n() / nrow(.),
+            pctMale = mean(gender == "Male"),
+            pctWhite = mean(race == "White"),
+            pctBelowMedInc = mean(famIncome == "Below Median Income"),
+            meanAge = mean(age),
+            meanCDI = mean(CDI2, na.rm = T)) %>%
+  kable(digits = 2)
+```
+
+### Factors in Child Responses
+
+```{r}
+#Recode age, gender for this table
+df.recoded <- df %>%
+  mutate(age = if_else(age %in% 11:13, "11-13", "14-16"),
+         gender = if_else(gender == "NB", NA_character_, gender))
+
+getF <- function(data, DV, IV) {
+  
+  ANOVA <- summary(aov(data = data, formula = as.formula(paste0(DV, " ~ ", IV))))
+  
+  fValue <- round(ANOVA[[1]][1, 4], 2)
+  pValue <- ANOVA[[1]][1, 5]
+  
+  if(pValue < .01) {
+    
+    fValue <- paste0(fValue, "***")
+    
+  } else if(pValue < .05) {
+    
+    fValue <- paste0(fValue, "**")
+    
+  } else if(pValue < .1) {
+    
+    fValue <- paste0(fValue, "*")
+    
+  }
+  
+  return(fValue)
+  
+}
+
+out <- data.frame(
+  symptom = c("down", "interest", "sleep", "appetite", "energy", "self", "concentrate", "pace", "suicide", "other", "none"),
+  overall = NA,
+  male = NA,
+  female = NA,
+  diff.gender = NA,
+  tween = NA,
+  teen = NA,
+  diff.age = NA,
+  low = NA,
+  high = NA,
+  diff.inc = NA,
+  stringsAsFactors = F
+)
+
+for(symptom in out$symptom) {
+  
+  var = paste0("def.", symptom, "_child")
+  
+  out$overall[out$symptom == symptom] <- mean(df.recoded[[var]])
+  
+  out$male[out$symptom == symptom] <- mean(df.recoded[[var]][df.recoded$gender == "Male"], na.rm = T)
+  out$female[out$symptom == symptom] <- mean(df.recoded[[var]][df.recoded$gender == "Female"], na.rm = T)
+  out$diff.gender[out$symptom == symptom] <- getF(df.recoded, var, "gender")
+  
+  out$tween[out$symptom == symptom] <- mean(df.recoded[[var]][df.recoded$age == "11-13"])
+  out$teen[out$symptom == symptom] <- mean(df.recoded[[var]][df.recoded$age == "14-16"])
+  out$diff.age[out$symptom == symptom] <- getF(df.recoded, var, "age")
+  
+  out$low[out$symptom == symptom] <- mean(df.recoded[[var]][df.recoded$famIncome == "Below Median Income"])
+  out$high[out$symptom == symptom] <- mean(df.recoded[[var]][df.recoded$famIncome == "At or Above Median Income"])
+  out$diff.inc[out$symptom == symptom] <- getF(df.recoded, var, "famIncome")
+
+}
+
+out %>%
+  mutate(symptom = case_when(symptom == "down" ~ "Feeling Down",
+                             symptom == "self" ~ "Self-Esteem",
+                             symptom == "concentrate" ~ "Difficulty Concentrating",
+                             symptom == "energy" ~ "Low Energy",
+                             symptom == "sleep" ~ "Trouble Sleeping",
+                             symptom == "interest" ~ "Little Interest",
+                             symptom == "suicide" ~ "Suicidal Ideation",
+                             symptom == "appetite" ~ "Poor Appetite",
+                             symptom == "pace" ~ "Psychomotor",
+                             symptom == "other" ~ "Other",
+                             symptom == "none" ~ "None")) %>%
+  kable(digits = 2,
+        align = "l",
+        col.names = c("Symptom", "Overall", "Male", "Female", "F", "11-13", "14-16", "F", "Low", "High", "F")) %>%
+  add_header_above(c(" " = 2, "Gender" = 3, "Age" = 3, "Family Income" = 3))
+```
+
+### Child vs Parent
+
+```{r}
+temp <- df %>%
+  select(LSMHID, starts_with("def.")) %>%
+  pivot_longer(cols = def.down_parent:def.none_child) %>%
+  mutate(respondent = gsub(".*_", "", name),
+         name = gsub(".*\\.|_.*", "", name)) %>%
+  pivot_wider(names_from = "name", values_from = "value")
+  
+out <- data.frame(
+  symptom = c("down", "interest", "sleep", "appetite", "energy", "self", "concentrate", "pace", "suicide", "other", "none"),
+  overall = NA,
+  child = NA,
+  parent = NA,
+  diff = NA,
+  stringsAsFactors = F
+)
+
+for(symptom in out$symptom) {
+  
+  out$overall[out$symptom == symptom] <- mean(temp[[symptom]])
+  
+  out$child[out$symptom == symptom] <- mean(temp[[symptom]][temp$respondent == "child"])
+  out$parent[out$symptom == symptom] <- mean(temp[[symptom]][temp$respondent == "parent"])
+  out$diff[out$symptom == symptom] <- getF(temp, symptom, "respondent")
+
+}
+
+kable(out,
+      digits = 2,
+      align = "l",
+      col.names = c("Symptom", "Overall", "Child", "Parent", "F"))
+```
+
+# Research Question 2
+
+## What beliefs do high-symptom adolescents and their parents hold about the causes and permanency of depression?
+
+```{r}
+df %>%
+  select(LSMHID,
+         `Cause: Brain` = cause.brain_child,
+         `Change: Brain` = change.brain_child,
+         `Cause: Environment` = cause.env_child,
+         `Change: Environment` = change.env_child,
+         `Less Permanent: Therapy` = lessPerm.therapy_child,
+         `Less Permanent: Medication` = lessPerm.med_child,
+         `Less Permanent: Other` = lessPerm.other_child,
+         Permanence = permanence_child) %>%
+  pivot_longer(`Cause: Brain`:Permanence) %>%
+  mutate(name = gsub("_child", "", name),
+         name = factor(name, levels = unique(name))) %>%
+  count(name, value) %>%
+  filter(!is.na(value)) %>%
+  arrange(name, value) %>%
+  ggplot() +
+    geom_bar(aes(value, n), stat = "identity", fill = "#194656") +
+    scale_y_continuous(name = NULL) +
+    scale_x_continuous(name = NULL, breaks = c(1, 5), labels = c("Not at all", "Completely")) +
+    facet_wrap(~ name, ncol = 2, scales = "free_x") +
+    theme_classic() +
+    theme(strip.background = element_rect(color = "black", 
+                                          fill = "#b1e6de"),
+          strip.text = element_text(size = 12))
+```
+
+### Factors in Child Responses
+
+```{r}
+out <- data.frame(
+  var = c("permanence_child", "cause.brain_child", "change.brain_child", "cause.env_child", "change.env_child", "lessPerm.therapy_child", "lessPerm.med_child", "lessPerm.other_child", "lessPerm.any_child"),
+  overall = NA,
+  male = NA,
+  female = NA,
+  diff.gender = NA,
+  tween = NA,
+  teen = NA,
+  diff.age = NA,
+  low = NA,
+  high = NA,
+  diff.inc = NA,
+  stringsAsFactors = F
+)
+
+for(var in out$var) {
+  
+  out$overall[out$var == var] <- mean(df.recoded[[var]], na.rm = T)
+  
+  out$male[out$var == var] <- mean(df.recoded[[var]][df.recoded$gender == "Male"], na.rm = T)
+  out$female[out$var == var] <- mean(df.recoded[[var]][df.recoded$gender == "Female"], na.rm = T)
+  out$diff.gender[out$var == var] <- getF(df.recoded, var, "gender")
+  
+  out$tween[out$var == var] <- mean(df.recoded[[var]][df.recoded$age == "11-13"], na.rm = T)
+  out$teen[out$var == var] <- mean(df.recoded[[var]][df.recoded$age == "14-16"], na.rm = T)
+  out$diff.age[out$var == var] <- getF(df.recoded, var, "age")
+  
+  out$low[out$var == var] <- mean(df.recoded[[var]][df.recoded$famIncome == "Below Median Income"], na.rm = T)
+  out$high[out$var == var] <- mean(df.recoded[[var]][df.recoded$famIncome == "At or Above Median Income"], na.rm = T)
+  out$diff.inc[out$var == var] <- getF(df.recoded, var, "famIncome")
+
+}
+
+kable(out,
+      digits = 2,
+      align = "l",
+      col.names = c("Variable", "Overall", "Male", "Female", "F", "11-13", "14-16", "F", "Low", "High", "F")) %>%
+  add_header_above(c(" " = 2, "Gender" = 3, "Age" = 3, "Family Income" = 3))
+```
+
+### Child vs Parent
+
+```{r}
+temp <- df %>%
+  select(LSMHID, contains("permanence"), contains("cause"), contains("change"), contains("lessPerm")) %>%
+  pivot_longer(cols = permanence_parent:lessPerm.any_child) %>%
+  mutate(respondent = gsub(".*_", "", name),
+         name = gsub("_.*", "", name)) %>%
+  pivot_wider(names_from = "name", values_from = "value")
+  
+out <- data.frame(
+  var = c("permanence", "cause.brain", "change.brain", "cause.env", "change.env", "lessPerm.therapy", "lessPerm.med", "lessPerm.other", "lessPerm.any"),
+  overall = NA,
+  child = NA,
+  parent = NA,
+  diff = NA,
+  stringsAsFactors = F
+)
+
+for(var in out$var) {
+  
+  out$overall[out$var == var] <- mean(temp[[var]], na.rm = T)
+  
+  out$child[out$var == var] <- mean(temp[[var]][temp$respondent == "child"], na.rm = T)
+  out$parent[out$var == var] <- mean(temp[[var]][temp$respondent == "parent"], na.rm = T)
+  out$diff[out$var == var] <- getF(temp, var, "respondent")
+
+}
+
+kable(out,
+      digits = 2,
+      align = "l",
+      col.names = c("Symptom", "Overall", "Child", "Parent", "F"))
+```
+
+# Research Question 3
+
+## How do beliefs about the causes and permanency of depression correlate with one another, and with other relevant constructs?
+
+```{r}
+matrix <- select(df, 
+                 Permanence = permanence_child,
+                 `Cause: Brain` = cause.brain_child,
+                 `Change: Brain` = change.brain_child,
+                 `Cause: Environment` = cause.env_child,
+                 `Change: Environment` = change.env_child,
+                 `Less Permanent: Therapy` = lessPerm.therapy_child,
+                 `Less Permanent: Medication` = lessPerm.med_child)
+corTest <- cor.mtest(matrix)
+matrix %>%
+  cor(use = "pairwise.complete.obs") %>%
+  corrplot(p.mat = corTest$p, 
+           method = "color", 
+           type = "upper", 
+           sig.level = c(.001, .01, .05), 
+           pch.cex = 1.5,
+           insig = "label_sig", 
+           pch.col = "white",
+           tl.col = "black",
+           tl.srt = 45)
+```
+
+```{r, fig.width = 10, fig.height = 10}
+matrix <- select(df, 
+                 Permanence = permanence_child,
+                 `Cause: Brain` = cause.brain_child,
+                 `Change: Brain` = change.brain_child,
+                 `Cause: Environment` = cause.env_child,
+                 `Change: Environment` = change.env_child,
+                 `Less Permanent: Therapy` = lessPerm.therapy_child,
+                 `Less Permanent: Medication` = lessPerm.med_child,
+                 IDAS,
+                 CDI2,
+                 `Personality Malleability` = personalityMalleability,
+                 Hopelessness = hopelessness,
+                 Agency = agency,
+                 `Self-Hate` = selfHate)
+corTest <- cor.mtest(matrix)
+matrix %>%
+  cor(use = "pairwise.complete.obs") %>%
+  corrplot(p.mat = corTest$p, 
+           method = "color", 
+           type = "upper", 
+           sig.level = c(.001, .01, .05), 
+           pch.cex = 1.5,
+           insig = "label_sig", 
+           pch.col = "white",
+           tl.col = "black",
+           tl.srt = 45)
+```
+
+```{r}
+matrix <- select(df, 
+                 Permanence = permanence_parent,
+                 `Cause: Brain` = cause.brain_parent,
+                 `Change: Brain` = change.brain_parent,
+                 `Cause: Environment` = cause.env_parent,
+                 `Change: Environment` = change.env_parent,
+                 `Less Permanent: Therapy` = lessPerm.therapy_parent,
+                 `Less Permanent: Medication` = lessPerm.med_parent)
+corTest <- cor.mtest(matrix)
+matrix %>%
+  cor(use = "pairwise.complete.obs") %>%
+  corrplot(p.mat = corTest$p, 
+           method = "color", 
+           type = "upper", 
+           sig.level = c(.001, .01, .05), 
+           pch.cex = 1.5,
+           insig = "label_sig", 
+           pch.col = "white",
+           tl.col = "black",
+           tl.srt = 45,
+           title = "Parent-report")
+```
+
+```{r, fig.width = 10, fig.height = 10}
+matrix <- select(df,
+                 `Permanence (Ch)` = permanence_child,
+                 `Cause: Brain (Ch)` = cause.brain_child,
+                 `Change: Brain (Ch)` = change.brain_child,
+                 `Cause: Environment (Ch)` = cause.env_child,
+                 `Change: Environment (Ch)` = change.env_child,
+                 `Less Permanent: Therapy (Ch)` = lessPerm.therapy_child,
+                 `Less Permanent: Medication (Ch)` = lessPerm.med_child,
+                 `Permanence (Pa)` = permanence_parent,
+                 `Cause: Brain (Pa)` = cause.brain_parent,
+                 `Change: Brain (Pa)` = change.brain_parent,
+                 `Cause: Environment (Pa)` = cause.env_parent,
+                 `Change: Environment (Pa)` = change.env_parent,
+                 `Less Permanent: Therapy (Pa)` = lessPerm.therapy_parent,
+                 `Less Permanent: Medication (Pa)` = lessPerm.med_parent)
+corTest <- cor.mtest(matrix)
+matrix %>%
+  cor(use = "pairwise.complete.obs") %>%
+  corrplot(p.mat = corTest$p, 
+           method = "color", 
+           type = "upper", 
+           sig.level = c(.001, .01, .05), 
+           pch.cex = 1.5,
+           insig = "label_sig", 
+           pch.col = "white",
+           tl.col = "black",
+           tl.srt = 45)
+```
+
+### Using Latent Class Analysis
+
+```{r}
+vars <- c("permanence_child", "cause.brain_child", "change.brain_child", "cause.env_child", "change.env_child", "lessPerm.therapy_child", "lessPerm.med_child")
+
+temp <- df %>%
+  left_join(classes) %>%
+  mutate(class = as.character(class))
+
+out <- data.frame(var = rep(vars, each = 3),
+                  class = as.character(rep(1:3, length(vars))),
+                  est = NA,
+                  lower = NA,
+                  upper = NA,
+                  stringsAsFactors = F)
+
+for(x in vars) {
+  
+  model <- lm(data = temp, as.formula(paste0(x, " ~ class + 0")))
+  CI <- confint(model, level = .9)
+  
+  for(i in 1:3) {
+
+    out$est[out$var == x & out$class == i] <- model$coefficients[paste0("class", i)]
+    out$lower[out$var == x & out$class == i] <- CI[paste0("class", i), "5 %"]
+    out$upper[out$var == x & out$class == i] <- CI[paste0("class", i), "95 %"]
+
+  }
+  
+}
+
+out %>%
+  ggplot() +
+    geom_bar(aes(var, est, fill = class), stat = "identity", position = "dodge") +
+    geom_errorbar(aes(var, ymin = lower, ymax = upper, group = class), position = "dodge", size = 1) +
+    scale_x_discrete(labels = c("permanence_child" = "Permanence",
+                                "cause.brain_child" = "Cause:\nBrain",
+                                "change.brain_child" = "Change:\nBrain",
+                                "cause.env_child" = "Cause:\nEnvironment",
+                                "change.env_child" = "Change:\nEnvironment",
+                                "lessPerm.therapy_child" = "Less Permanent:\nTherapy",
+                                "lessPerm.med_child" = "Less Permanent:\nMedication"),
+                     name = NULL) +
+    scale_y_continuous(name = "Mean") +
+    scale_fill_discrete(name = "Class") +
+    theme_classic()
+```
+
+Potential papers:
+
+- PPD constructs relationship with hopelessness (which has proven clinical significance)
+- Descriptive study given unique population (high-symptom, adolescent)
+- Focus on finding that there is a correlation between causes (a general "causality" factor?)

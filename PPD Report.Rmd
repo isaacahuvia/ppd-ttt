@@ -1,0 +1,32 @@
+---
+title: "PPD Report v2"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+library(easypackages)
+libraries("tidyverse", "magrittr", "ggplot2", "scales", "corrplot", "knitr", "kableExtra", "poLCA", "conflicted")
+walk(c("filter", "select", "count", "group_by"), ~ conflict_prefer(., "dplyr"))
+
+knitr::opts_chunk$set(echo = F, message = F)
+
+rm(list = ls())
+
+df <- readRDS(file = "S:\\TRACK to TREAT\\Data\\Processed Data\\prognostic_pessimism_working_data.rds")
+```
+
+```{r}
+df %>%
+  select(contains("b.y.cause"), contains("b.y.change")) %>%
+  cor(use = "pairwise.complete.obs") %>%
+  corrplot()
+
+df %>%
+  select(contains("f.y.cause"), contains("f.y.change")) %>%
+  cor(use = "pairwise.complete.obs") %>%
+  corrplot()
+
+grid.arrange(p1, p2, nrow = 1)
+```
