@@ -44,6 +44,10 @@ df <- raw %>%
   ## Properly score reverse-coded CDI items
   mutate(across(matches(paste0("cdi_", c(2, 6, 7, 9, 10, 12, 14, 15, 17, 20, 23, 24, 26, 27), "$")),
             ~ {3 - .})) %>%
+
+  ## Properly score reverse-coded PCSC items
+  mutate(across(matches(paste0("pcsc_", c(3, 5, 6, 8, 10, 12, 13, 16, 17, 19, 21, 23), "$")),
+                ~ {5 - .})) %>%
   
   ## Create new variables
   mutate(
