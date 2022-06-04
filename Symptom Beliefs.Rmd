@@ -7,32 +7,126 @@ output:
 
 ```{r, include = F}
 library(easypackages)
-libraries("tidyverse", "magrittr", "ggplot2", "scales", "corrplot", "knitr", "kableExtra", "poLCA", "conflicted")
-walk(c("filter", "select", "count", "group_by"), ~ conflict_prefer(., "dplyr"))
+libraries("tidyverse", "ggplot2", "scales", "knitr", "kableExtra", "lme4", "lmerTest", "rmcorr")
 
 rm(list = ls())
 
-
 df <- readRDS(file = "S:\\TRACK to TREAT\\Data\\Processed Data\\depression_belief_data.rds") %>%
-  select(pb_childethnicity_alt:p3m_def_other)
+  select(yb_lsmh_id:p3m_defOther)
+
+symptoms <- c("Appetite", "Concentrate", "Down", "Energy", "Interest", "Other", "Pace", "Self", "Sleep", "Suicide")
 ```
 
-### Sample Description
+## Sample Description
 
+```{r}
+count(df, pb_childethnicity_alt) %>%
+  mutate(prop = n / sum(n))
+count(df, pb_childgender) %>%
+  mutate(prop = n / sum(n))
+count(df, pb_childage) %>%
+  mutate(prop = n / sum(n))
+count(df, pb_income) %>%
+  mutate(prop = n / sum(n))
+```
 
+## Analysis 1: Description of Symptom Beliefs
 
-### Analysis 1: Child Beliefs and Child Demographics
+```{r}
+df %>%
+  select(matches("y.*_def")) %>%
+  pivot_longer(everything()) %>%
+  mutate(name = gsub("^.*_", "", name)) %>%
+  group_by(name) %>%
+  summarize(prop = mean(value, na.rm = T))
+```
 
-Repeated measures (hierarchical) logistic regression (glmer)
+## Analysis 2: Child Belief Stability
 
-### Analysis 2: Child Belief Correlates
+Spearman correlation (cor)
+
+```{r}
+out_2 <- tibble()
+
+for(x in symptoms) {
+  
+  correlation <- cor.test(
+    df[[paste0("yb_def", x)]],
+    df[[paste0("y3m_def", x)]],
+    use = "complete.obs"
+  )
+  
+  results <- tibble(
+    x = x,
+    r = correlation$estimate,
+    p = correlation$p.value
+  )
+  
+  out_2 <- rbind(out_2, results)
+  
+}
+
+# p-adjust
+out_2$p <- p.adjust(out_2$p, "BH")
+
+# Report
+out_2 %>%
+  arrange(p) %>%
+  kable() %>%
+  kable_styling()
+```
+
+## Analysis 3: Child and Parent Belief Agreement
 
 Repeated measures correlation (rmcorr)
 
-### Analysis 3: Child Belief Stability
+```{r}
+df_long_3_y <- df %>%
+  select(yb_lsmh_id, paste0("yb_def", symptoms), paste0("y3m_def", symptoms)) %>%
+  pivot_longer(-yb_lsmh_id, 
+               names_sep = "_",
+               names_to = c("time", ".value")) %>%
+  mutate(time = gsub("y", "", time))
 
-Spearman correlation (cor)
+df_long_3_p <- df %>%
+  select(yb_lsmh_id, paste0("pb_def", symptoms), paste0("p3m_def", symptoms)) %>%
+  pivot_longer(-yb_lsmh_id, 
+               names_sep = "_",
+               names_to = c("time", ".value")) %>%
+  mutate(time = gsub("p", "", time))
 
-### Analysis 4: Child and Parent Belief Agreement
+df_long_3 <- inner_join(df_long_3_y, df_long_3_p, 
+                        by = c("yb_lsmh_id", "time"),
+                        suffix = c("_youth", "_parent"))
 
-Spearman correlation (cor)
+out_3 <- tibble()
+
+for(x in symptoms) {
+  
+  correlation <- rmcorr(
+    data = df_long_3,
+    participant = "yb_lsmh_id",
+    measure1 = paste0("def", x, "_youth"),
+    measure2 = paste0("def", x, "_parent")
+  )
+  
+  results <- tibble(
+    x = x,
+    y = y,
+    r = correlation$r,
+    p = correlation$p
+  )
+  
+  out_3 <- rbind(out_3, results)
+      
+}
+
+# p-adjust
+out_3$p <- p.adjust(out_3$p, "BH")
+
+# Report
+out_3 %>%
+  arrange(p) %>%
+  kable() %>%
+  kable_styling()
+```

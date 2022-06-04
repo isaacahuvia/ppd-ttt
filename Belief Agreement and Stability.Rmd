@@ -7,14 +7,15 @@ output:
 
 ```{r, include = F}
 library(easypackages)
-libraries("tidyverse", "ggplot2", "scales", "knitr", "kableExtra", "lme4", "lmerTest", "rmcorr")
+libraries("ggplot2", "scales", "knitr", "kableExtra", "lme4", "lmerTest", "rmcorr", "ltm", "tidyverse")
 
 rm(list = ls())
 
 df <- readRDS(file = "S:\\TRACK to TREAT\\Data\\Processed Data\\depression_belief_data.rds") %>%
   select(-matches("def_"),
          -matches("other_text$"),
-         -pb_childethnicity_alt)
+         -pb_childethnicity_alt) %>%
+  mutate(yb_lsmh_id = factor(yb_lsmh_id))
 
 # Standardize depression belief variables
 df <- df %>%
@@ -35,11 +36,37 @@ df <- df %>%
     pb_income == "$120,000-$140,000" ~ 7,
     pb_income == "$140,000+" ~ 8
   ))
+
+# Belief outcomes - we will run regressions for each of these
+beliefs <- c("depPermanence", "causeBrain", "causeEnv", "changeBrain", "changeEnv", "lessPermTherapy", "lessPermMed")
+
+# Other constructs
+psychVariables <- c("cdi", "bhs", "pcsc", "iptq", "shs")
+```
+
+## Reliability
+
+```{r}
+for(x in psychVariables) {
+  
+  for(prefix in c("yb", "y3m")) {
+    
+    print(paste0(x, " at ", prefix))
+    
+    df %>%
+      select(matches(paste0(prefix, "_", x, "_.*$"))) %>%
+      drop_na() %>%
+      cronbach.alpha() %>%
+      print()
+    
+  }
+  
+}
 ```
 
 ## Sample Description
 
-```{r, echo = F}
+```{r}
 count(df, pb_childethnicity) %>%
   mutate(prop = n / sum(n))
 count(df, pb_childgender) %>%
@@ -55,9 +82,6 @@ count(df, pb_income) %>%
 Repeated measures (hierarchical) linear regression (lmer)
 
 ```{r}
-# Belief outcomes - we will run regressions for each of these
-beliefs <- c("depPermanence", "causeBrain", "causeEnv", "changeBrain", "changeEnv", "lessPermTherapy", "lessPermMed")
-
 # Ethnicity levels with N >= 10
 ethnicity_levels <- c("White, non-Hispanic (includes Middle Eastern)",
                       "Black or African American",
@@ -290,9 +314,6 @@ out_2b %>%
 Repeated measures correlation (rmcorr)
 
 ```{r}
-# Other constructs
-psychVariables <- c("cdi", "bhs", "pcsc", "iptq", "shs")
-
 df_long_2c <- df %>%
   select(yb_lsmh_id, 
          paste0("yb_", beliefs), paste0("y3m_", beliefs),

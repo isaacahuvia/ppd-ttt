@@ -1857,23 +1857,128 @@ pre code {
 </div>
 
 
+<div id="reliability" class="section level2">
+<h2>Reliability</h2>
+<pre class="r"><code>for(x in psychVariables) {
+  
+  for(prefix in c(&quot;yb&quot;, &quot;y3m&quot;)) {
+    
+    print(paste0(x, &quot; at &quot;, prefix))
+    
+    df %&gt;%
+      select(matches(paste0(prefix, &quot;_&quot;, x, &quot;_.*$&quot;))) %&gt;%
+      drop_na() %&gt;%
+      cronbach.alpha() %&gt;%
+      print()
+    
+  }
+  
+}</code></pre>
+<pre><code>## [1] &quot;cdi at yb&quot;
+## 
+## Cronbach&#39;s alpha for the &#39;.&#39; data-set
+## 
+## Items: 28
+## Sample units: 104
+## alpha: 0.92
+## 
+## [1] &quot;cdi at y3m&quot;
+## 
+## Cronbach&#39;s alpha for the &#39;.&#39; data-set
+## 
+## Items: 28
+## Sample units: 88
+## alpha: 0.916
+## 
+## [1] &quot;bhs at yb&quot;
+## 
+## Cronbach&#39;s alpha for the &#39;.&#39; data-set
+## 
+## Items: 4
+## Sample units: 105
+## alpha: 0.912
+## 
+## [1] &quot;bhs at y3m&quot;
+## 
+## Cronbach&#39;s alpha for the &#39;.&#39; data-set
+## 
+## Items: 4
+## Sample units: 87
+## alpha: 0.919
+## 
+## [1] &quot;pcsc at yb&quot;
+## 
+## Cronbach&#39;s alpha for the &#39;.&#39; data-set
+## 
+## Items: 24
+## Sample units: 104
+## alpha: 0.243
+## 
+## [1] &quot;pcsc at y3m&quot;
+## 
+## Cronbach&#39;s alpha for the &#39;.&#39; data-set
+## 
+## Items: 24
+## Sample units: 85
+## alpha: 0.361
+## 
+## [1] &quot;iptq at yb&quot;
+## 
+## Cronbach&#39;s alpha for the &#39;.&#39; data-set
+## 
+## Items: 3
+## Sample units: 106
+## alpha: 0.838
+## 
+## [1] &quot;iptq at y3m&quot;
+## 
+## Cronbach&#39;s alpha for the &#39;.&#39; data-set
+## 
+## Items: 3
+## Sample units: 91
+## alpha: 0.861
+## 
+## [1] &quot;shs at yb&quot;
+## 
+## Cronbach&#39;s alpha for the &#39;.&#39; data-set
+## 
+## Items: 7
+## Sample units: 99
+## alpha: 0.942
+## 
+## [1] &quot;shs at y3m&quot;
+## 
+## Cronbach&#39;s alpha for the &#39;.&#39; data-set
+## 
+## Items: 7
+## Sample units: 83
+## alpha: 0.965</code></pre>
+</div>
 <div id="sample-description" class="section level2">
 <h2>Sample Description</h2>
+<pre class="r"><code>count(df, pb_childethnicity) %&gt;%
+  mutate(prop = n / sum(n))</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
 {"columns":[{"label":["pb_childethnicity"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]},{"label":["prop"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"American Indian and/or Alaska Native","2":"1","3":"0.009433962"},{"1":"Asian (including Asian Desi and Pacific Islander)","2":"2","3":"0.018867925"},{"1":"Black or African American","2":"12","3":"0.113207547"},{"1":"Hispanic or Latino/a","2":"15","3":"0.141509434"},{"1":"More than one race","2":"12","3":"0.113207547"},{"1":"Other, please specify","2":"1","3":"0.009433962"},{"1":"White, non-Hispanic (includes Middle Eastern)","2":"63","3":"0.594339623"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
+<pre class="r"><code>count(df, pb_childgender) %&gt;%
+  mutate(prop = n / sum(n))</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
 {"columns":[{"label":["pb_childgender"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]},{"label":["prop"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"boy/man","2":"38","3":"0.35849057"},{"1":"gender minority","2":"5","3":"0.04716981"},{"1":"girl/woman","2":"63","3":"0.59433962"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
+<pre class="r"><code>count(df, pb_childage) %&gt;%
+  mutate(prop = n / sum(n))</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
 {"columns":[{"label":["pb_childage"],"name":[1],"type":["int"],"align":["right"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]},{"label":["prop"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"11","2":"4","3":"0.03773585"},{"1":"12","2":"12","3":"0.11320755"},{"1":"13","2":"24","3":"0.22641509"},{"1":"14","2":"20","3":"0.18867925"},{"1":"15","2":"27","3":"0.25471698"},{"1":"16","2":"19","3":"0.17924528"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
+<pre class="r"><code>count(df, pb_income) %&gt;%
+  mutate(prop = n / sum(n))</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
 {"columns":[{"label":["pb_income"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]},{"label":["prop"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"$0-$19,000","2":"9","3":"0.08490566"},{"1":"$100,000 - $119,000","2":"6","3":"0.05660377"},{"1":"$120,000-$140,000","2":"8","3":"0.07547170"},{"1":"$140,000+","2":"28","3":"0.26415094"},{"1":"$20,000-$39,000","2":"14","3":"0.13207547"},{"1":"$40,000-$59,000","2":"8","3":"0.07547170"},{"1":"$60,000-$79,000","2":"16","3":"0.15094340"},{"1":"$80,000 - $99,000","2":"17","3":"0.16037736"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
@@ -1883,10 +1988,7 @@ pre code {
 <div id="analysis-1-child-beliefs-and-child-demographics" class="section level2">
 <h2>Analysis 1: Child Beliefs and Child Demographics</h2>
 <p>Repeated measures (hierarchical) linear regression (lmer)</p>
-<pre class="r"><code># Belief outcomes - we will run regressions for each of these
-beliefs &lt;- c(&quot;depPermanence&quot;, &quot;causeBrain&quot;, &quot;causeEnv&quot;, &quot;changeBrain&quot;, &quot;changeEnv&quot;, &quot;lessPermTherapy&quot;, &quot;lessPermMed&quot;)
-
-# Ethnicity levels with N &gt;= 10
+<pre class="r"><code># Ethnicity levels with N &gt;= 10
 ethnicity_levels &lt;- c(&quot;White, non-Hispanic (includes Middle Eastern)&quot;,
                       &quot;Black or African American&quot;,
                       &quot;Hispanic or Latino/a&quot;,
@@ -2768,133 +2870,9 @@ for(x in beliefs) {
     
   }
   
-}</code></pre>
-<pre><code>## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
+}
 
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2a, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor</code></pre>
-<pre class="r"><code># Remove redundancies
+# Remove redundancies
 out_2a &lt;- out_2a %&gt;%
   rowwise() %&gt;%
   mutate(xy = paste(sort(c(x, y)), collapse = &quot; &quot;)) %&gt;%
@@ -3328,133 +3306,9 @@ for(x in beliefs) {
     
   }
   
-}</code></pre>
-<pre><code>## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
+}
 
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2b, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor</code></pre>
-<pre class="r"><code># Remove redundancies
+# Remove redundancies
 out_2b &lt;- out_2b %&gt;%
   rowwise() %&gt;%
   mutate(xy = paste(sort(c(x, y)), collapse = &quot; &quot;)) %&gt;%
@@ -3854,10 +3708,7 @@ causeBrain causeEnv
 <div id="c-child-belief-correlates" class="section level4">
 <h4>2c: Child Belief Correlates</h4>
 <p>Repeated measures correlation (rmcorr)</p>
-<pre class="r"><code># Other constructs
-psychVariables &lt;- c(&quot;cdi&quot;, &quot;bhs&quot;, &quot;pcsc&quot;, &quot;iptq&quot;, &quot;shs&quot;)
-
-df_long_2c &lt;- df %&gt;%
+<pre class="r"><code>df_long_2c &lt;- df %&gt;%
   select(yb_lsmh_id, 
          paste0(&quot;yb_&quot;, beliefs), paste0(&quot;y3m_&quot;, beliefs),
          paste0(&quot;yb_&quot;, psychVariables), paste0(&quot;y3m_&quot;, psychVariables)) %&gt;%
@@ -3889,112 +3740,9 @@ for(x in beliefs) {
       
   }
   
-}</code></pre>
-<pre><code>## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
+}
 
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_2c, participant = &quot;yb_lsmh_id&quot;, measure1 = x, :
-## &#39;yb_lsmh_id&#39; coerced into a factor</code></pre>
-<pre class="r"><code># p-adjust
+# p-adjust
 out_2c$p &lt;- p.adjust(out_2c$p, &quot;BH&quot;)
 
 # Report
@@ -4681,28 +4429,9 @@ for(x in beliefs) {
   
   out_4 &lt;- rbind(out_4, results)
       
-}</code></pre>
-<pre><code>## Warning in rmcorr(data = df_long_4, participant = &quot;yb_lsmh_id&quot;, measure1 =
-## paste0(x, : &#39;yb_lsmh_id&#39; coerced into a factor
+}
 
-## Warning in rmcorr(data = df_long_4, participant = &quot;yb_lsmh_id&quot;, measure1 =
-## paste0(x, : &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_4, participant = &quot;yb_lsmh_id&quot;, measure1 =
-## paste0(x, : &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_4, participant = &quot;yb_lsmh_id&quot;, measure1 =
-## paste0(x, : &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_4, participant = &quot;yb_lsmh_id&quot;, measure1 =
-## paste0(x, : &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_4, participant = &quot;yb_lsmh_id&quot;, measure1 =
-## paste0(x, : &#39;yb_lsmh_id&#39; coerced into a factor
-
-## Warning in rmcorr(data = df_long_4, participant = &quot;yb_lsmh_id&quot;, measure1 =
-## paste0(x, : &#39;yb_lsmh_id&#39; coerced into a factor</code></pre>
-<pre class="r"><code># p-adjust
+# p-adjust
 out_4$p &lt;- p.adjust(out_4$p, &quot;BH&quot;)
 
 # Report
