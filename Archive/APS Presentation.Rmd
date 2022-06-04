@@ -1,0 +1,113 @@
+---
+title: "APS Presentation"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+library(easypackages)
+libraries("tidyverse", "magrittr", "ggplot2", "scales", "corrplot", "knitr", "kableExtra", "conflicted", "yhat", "stargazer")
+walk(c("filter", "select", "count", "group_by"), ~ conflict_prefer(., "dplyr"))
+
+knitr::opts_chunk$set(echo = F, message = F)
+
+rm(list = ls())
+
+df <- readRDS(file = "S:\\TRACK to TREAT\\Data\\Processed Data\\prognostic_pessimism_working_data.rds") %>%
+  select(LSMHID,
+         b.y.cause_brain,
+         b.y.cause_env,
+         b.y.permanence,
+         b.y.CDI2, 
+         b.y.hopelessness)
+
+df_scaled <- df %>%
+  mutate_if(is.numeric, scale)
+
+primary <- "#194656"
+secondary <- "#B1E6DE"
+```
+
+## RQ 1: What is the relationship between causal beliefs regarding depression and prognostic pessimism?
+
+```{r}
+cor.test(df$b.y.cause_brain, df$b.y.cause_env)
+cor.test(df$b.y.cause_brain, df$b.y.permanence)
+cor.test(df$b.y.cause_env, df$b.y.permanence)
+
+df %>%
+  group_by(b.y.cause_brain) %>%
+  summarize(permanence = mean(b.y.permanence),
+            se = sd(b.y.permanence) / sqrt(n())) %>%
+  ggplot() +
+    geom_errorbar(aes(b.y.cause_brain, ymin = permanence - se, ymax = permanence + se), color = secondary, size = 2) +
+    geom_point(aes(b.y.cause_brain, permanence), color = primary, size = 4) +
+    scale_x_continuous(name = "How much is depression caused by your brain?", breaks = c(1, 5), labels = c("Not at all", "Completely")) +
+    scale_y_continuous(name = "Prognostic Pessimism", limits = c(1, 5)) +
+    theme_classic() +
+    ggtitle("Biological Causal Beliefs and Prognostic Pessimism", "Means and Standard Errors")
+
+df %>%
+  group_by(b.y.cause_env) %>%
+  summarize(permanence = mean(b.y.permanence),
+            se = sd(b.y.permanence) / sqrt(n())) %>%
+  ggplot() +
+    geom_errorbar(aes(b.y.cause_env, ymin = permanence - se, ymax = permanence + se), color = secondary, size = 2) +
+    geom_point(aes(b.y.cause_env, permanence), color = primary, size = 4) +
+    scale_x_continuous(name = "How much is depression caused by your environment?", breaks = c(1, 5), labels = c("Not at all", "Completely")) +
+    scale_y_continuous(name = "Prognostic Pessimism", limits = c(1, 5)) +
+    theme_classic() +
+    ggtitle("Environmental Causal Beliefs and Prognostic Pessimism", "Means and Standard Errors")
+```
+
+```{r, results = "asis"}
+model.permanence_brain <- lm(data = df_scaled, b.y.permanence ~ b.y.cause_brain)
+
+model.permanence_brain_cdi <- lm(data = df_scaled, b.y.permanence ~ b.y.cause_brain + b.y.CDI2)
+
+model.permanence_env <- lm(data = df_scaled, b.y.permanence ~ b.y.cause_env)
+
+model.permanence_env_cdi <- lm(data = df_scaled, b.y.permanence ~ b.y.cause_env + b.y.CDI2)
+
+model.permanence_both <- lm(data = df_scaled, b.y.permanence ~ b.y.cause_brain + b.y.cause_env)
+
+model.permanence_both_cdi <- lm(data = df_scaled, b.y.permanence ~ b.y.cause_brain + b.y.cause_env + b.y.CDI2)
+
+stargazer(model.permanence_brain, model.permanence_brain_cdi, model.permanence_env, model.permanence_env_cdi, model.permanence_both, model.permanence_both_cdi, type = "html", report=("vc*p"))
+```
+
+```{r}
+commonalityCoefficients(dataMatrix = df,
+                        dv = "b.y.permanence",
+                        ivlist = c("b.y.cause_brain", "b.y.cause_env"))
+```
+
+## RQ 2: What is the relationship between prognostic pessimism and depression symptom severity?
+
+```{r}
+df %>%
+  group_by(b.y.permanence) %>%
+  summarize(CDI2 = mean(b.y.CDI2, na.rm = T),
+            se = sd(b.y.CDI2, na.rm = T) / sqrt(n())) %>%
+  ggplot() +
+    geom_errorbar(aes(b.y.permanence, ymin = CDI2 - se, ymax = CDI2 + se), color = secondary, size = 2) +
+    geom_point(aes(b.y.permanence, CDI2), color = primary, size = 4) +
+    scale_x_continuous(name = "Prognostic Pessimism") +
+    scale_y_continuous(name = "Depression Symptom Severity (CDI-2)") +
+    theme_classic() +
+    ggtitle("Prognostic Pessimism and Depression Symptom Severity", "Means and Standard Errors")
+```
+
+```{r, results = "asis"}
+model.cdi_permanence <- lm(data = df_scaled, b.y.CDI2 ~ b.y.permanence)
+model.cdi_permanence_hope <- lm(data = df_scaled, b.y.CDI2 ~ b.y.permanence + b.y.hopelessness)
+
+stargazer(model.cdi_permanence, model.cdi_permanence_hope, type = "html", report=("vc*p"))
+```
+
+```{r}
+commonalityCoefficients(dataMatrix = df,
+                        dv = "b.y.CDI2",
+                        ivlist = c("b.y.permanence", "b.y.hopelessness"))
+```

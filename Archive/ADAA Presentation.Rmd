@@ -1,0 +1,144 @@
+---
+title: "ADAA Presentation"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+library(easypackages)
+libraries("tidyverse", "magrittr", "ggplot2", "scales", "corrplot", "knitr", "kableExtra", "conflicted")
+walk(c("filter", "select", "count", "group_by"), ~ conflict_prefer(., "dplyr"))
+
+knitr::opts_chunk$set(echo = F, message = F)
+
+rm(list = ls())
+
+df <- readRDS(file = "S:\\TRACK to TREAT\\Data\\Processed Data\\prognostic_pessimism_working_data.rds") %>%
+  select(LSMHID,
+         race, gender, age, famIncome,
+         matches("cause_brain$"),
+         matches("cause_env$"),
+         matches("permanence$"),
+         b.y.CDI2, b.y.malleability, b.y.hopelessness)
+
+primary <- "#194656"
+secondary <- "#B1E6DE"
+```
+
+### RQ 1: What are depressed adolescents’ beliefs about the causes (environmental versus genetic) and malleability (permanency) of depression?
+
+Distributions
+
+```{r}
+df %>%
+  pivot_longer(cols = c(b.y.cause_brain, b.y.cause_env, b.y.permanence)) %>%
+  mutate(name = recode(name, 
+                       "b.y.cause_brain" = "Cause: Brain",
+                       "b.y.cause_env" = "Cause: Environment",
+                       "b.y.permanence" = "Prognostic Pessimism")) %>%
+  count(name, value) %>%
+  drop_na() %>%
+  ggplot() +
+  geom_col(aes(value, n), fill = primary, width = .9) +
+  facet_wrap(name ~ .) +
+  scale_y_continuous(name = NULL) +
+  scale_x_continuous(name = NULL, breaks = c(1, 5), labels = c("Not at all", "Completely")) +
+  theme_classic() +
+  theme(strip.background = element_rect(
+    color = secondary, fill = secondary
+  ))
+```
+
+Breakdown by Demographics
+
+```{r}
+df <- df %>%
+  mutate(ageHigh = age > median(age),
+         famIncomeHigh = famIncome >= median(famIncome))
+
+aov(data = df, b.y.cause_brain ~ race) %>% summary()
+aov(data = df, b.y.cause_env ~ race) %>% summary()
+aov(data = df, b.y.permanence ~ race) %>% summary()
+
+aov(data = df, b.y.cause_brain ~ gender) %>% summary()
+aov(data = df, b.y.cause_env ~ gender) %>% summary()
+aov(data = df, b.y.permanence ~ gender) %>% summary()
+
+aov(data = df, b.y.cause_brain ~ ageHigh) %>% summary()
+aov(data = df, b.y.cause_env ~ ageHigh) %>% summary()
+aov(data = df, b.y.permanence ~ ageHigh) %>% summary()
+
+aov(data = df, b.y.cause_brain ~ famIncomeHigh) %>% summary()
+aov(data = df, b.y.cause_env ~ famIncomeHigh) %>% summary()
+aov(data = df, b.y.permanence ~ famIncomeHigh) %>% summary()
+
+df %>%
+  rename(`Prognostic Pessimism` = b.y.permanence) %>%
+  count(gender, `Prognostic Pessimism`) %>%
+  mutate(gender = recode(gender, "NB" = "Non-Binary")) %>%
+  ggplot() +
+  geom_col(aes(`Prognostic Pessimism`, n), fill = primary, width = .9) +
+  facet_wrap(gender ~ .) +
+  scale_y_continuous(name = NULL) +
+  scale_x_continuous(name = NULL, breaks = c(1, 5), labels = c("Not at all", "Completely")) +
+  theme_classic() +
+  theme(strip.background = element_rect(
+    color = secondary, fill = secondary
+  ))
+
+df %>%
+  group_by(gender) %>%
+  summarize(mean = mean(b.y.permanence, na.rm = T))
+```
+
+### RQ 2: How do these beliefs relate to one another and to other relevant constructs (e.g., psychopathology severity)?
+
+```{r}
+df %>%
+  select(`Cause: Brain` = b.y.cause_brain, 
+         `Cause: Environment` = b.y.cause_env, 
+         `Prognostic Pessimism` = b.y.permanence) %>%
+  cor(use = "pairwise.complete.obs", method = "spearman") %>%
+  corrplot(type = "lower", method = "number", tl.col = primary, tl.srt = 45)
+
+df %>%
+  select(`Prognostic Pessimism` = b.y.permanence, 
+         `Depression Symptom Severity (CDI-2)` = b.y.CDI2, 
+         `Fixed Mindset of Personality (IPTQ)` = b.y.malleability, 
+         `Hopelessness (BHS-4)` = b.y.hopelessness) %>%
+  cor(use = "pairwise.complete.obs", method = "spearman") %>%
+  corrplot(type = "lower", method = "number", tl.col = primary, tl.srt = 45)
+```
+
+### RQ 3: Do children and parents hold similar beliefs?
+
+```{r}
+mean(df$b.y.cause_brain, na.rm = T)
+mean(df$b.p.cause_brain, na.rm = T)
+cor.test(df$b.y.cause_brain, df$b.p.cause_brain, method = "spearman")
+
+mean(df$b.y.cause_env, na.rm = T)
+mean(df$b.p.cause_env, na.rm = T)
+cor.test(df$b.y.cause_env, df$b.p.cause_env, method = "spearman")
+
+mean(df$b.y.permanence, na.rm = T)
+mean(df$b.p.permanence, na.rm = T)
+cor.test(df$b.y.permanence, df$b.p.permanence, method = "spearman")
+```
+
+### RQ 4: How stable are these beliefs?
+
+```{r}
+mean(df$b.y.cause_brain, na.rm = T)
+mean(df$f.y.cause_brain, na.rm = T)
+cor.test(df$b.y.cause_brain, df$f.y.cause_brain, method = "spearman")
+
+mean(df$b.y.cause_env, na.rm = T)
+mean(df$f.y.cause_env, na.rm = T)
+cor.test(df$b.y.cause_env, df$f.y.cause_env, method = "spearman")
+
+mean(df$b.y.permanence, na.rm = T)
+mean(df$f.y.permanence, na.rm = T)
+cor.test(df$b.y.permanence, df$f.y.permanence, method = "spearman")
+```

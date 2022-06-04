@@ -1,0 +1,428 @@
+---
+title: "Belief Agreement and Stability"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r, include = F}
+library(easypackages)
+libraries("tidyverse", "ggplot2", "scales", "knitr", "kableExtra", "lme4", "lmerTest", "rmcorr")
+
+rm(list = ls())
+
+df <- readRDS(file = "S:\\TRACK to TREAT\\Data\\Processed Data\\depression_belief_data.rds") %>%
+  select(-matches("def_"),
+         -matches("other_text$"),
+         -pb_childethnicity_alt)
+
+# Standardize depression belief variables
+df <- df %>%
+  mutate(across(yb_depPermanence:p3m_lessPermOther, 
+                ~ . %>% 
+                  scale() %>%
+                  as.numeric()))
+
+# Create numeric version of income
+df <- df %>%
+  mutate(pb_income_num = case_when(
+    pb_income == "$0-$19,000" ~ 1,
+    pb_income == "$20,000-$39,000" ~ 2,
+    pb_income == "$40,000-$59,000" ~ 3,
+    pb_income == "$60,000-$79,000" ~ 4,
+    pb_income == "$80,000 - $99,000" ~ 5,
+    pb_income == "$100,000 - $119,000" ~ 6,
+    pb_income == "$120,000-$140,000" ~ 7,
+    pb_income == "$140,000+" ~ 8
+  ))
+```
+
+## Sample Description
+
+```{r, echo = F}
+count(df, pb_childethnicity) %>%
+  mutate(prop = n / sum(n))
+count(df, pb_childgender) %>%
+  mutate(prop = n / sum(n))
+count(df, pb_childage) %>%
+  mutate(prop = n / sum(n))
+count(df, pb_income) %>%
+  mutate(prop = n / sum(n))
+```
+
+## Analysis 1: Child Beliefs and Child Demographics
+
+Repeated measures (hierarchical) linear regression (lmer)
+
+```{r}
+# Belief outcomes - we will run regressions for each of these
+beliefs <- c("depPermanence", "causeBrain", "causeEnv", "changeBrain", "changeEnv", "lessPermTherapy", "lessPermMed")
+
+# Ethnicity levels with N >= 10
+ethnicity_levels <- c("White, non-Hispanic (includes Middle Eastern)",
+                      "Black or African American",
+                      "Hispanic or Latino/a",
+                      "More than one race")
+
+# Gender levels with N >= 10
+gender_levels <- c("girl/woman", "boy/man")
+
+out_1 <- tibble()
+
+for(y in beliefs) {
+
+  # Ethnicity
+  model <- df %>%
+    filter(pb_childethnicity %in% ethnicity_levels) %>%
+    mutate(pb_childethnicity = factor(pb_childethnicity, ethnicity_levels)) %>%
+    pivot_longer(matches(paste0("y.*", y))) %>%
+    lmerTest::lmer(data = .,
+                   formula = value ~ pb_childethnicity + (1 | yb_lsmh_id)) %>%
+    summary()
+  
+  coefficients <- model$coefficients[-1,]
+  
+  results <- tibble(
+    DV = y,
+    IV = rownames(coefficients),
+    est = coefficients[,"Estimate"],
+    se = coefficients[,"Std. Error"],
+    p = coefficients[,"Pr(>|t|)"]
+  )
+  
+  out_1 <- rbind(out_1, results)
+  
+  # Gender
+  model <- df %>%
+    filter(pb_childgender %in% gender_levels) %>%
+    mutate(pb_childgender = factor(pb_childgender, gender_levels)) %>%
+    pivot_longer(matches(paste0("y.*", y))) %>%
+    lmerTest::lmer(data = .,
+                   formula = value ~ pb_childgender + (1 | yb_lsmh_id)) %>%
+    summary()
+  
+  coefficients <- model$coefficients[-1,]
+  
+  results <- tibble(
+    DV = y,
+    IV = "pb_childgenderboy/man",
+    est = coefficients["Estimate"],
+    se = coefficients["Std. Error"],
+    p = coefficients["Pr(>|t|)"]
+  )
+  
+  out_1 <- rbind(out_1, results)
+  
+  # Age
+  model <- df %>%
+    drop_na(pb_childage) %>%
+    pivot_longer(matches(paste0("y.*", y))) %>%
+    lmerTest::lmer(data = .,
+                   formula = value ~ pb_childage + (1 | yb_lsmh_id)) %>%
+    summary()
+  
+  coefficients <- model$coefficients[-1,]
+  
+  results <- tibble(
+    DV = y,
+    IV = "pb_childage",
+    est = coefficients["Estimate"],
+    se = coefficients["Std. Error"],
+    p = coefficients["Pr(>|t|)"]
+  )
+  
+  out_1 <- rbind(out_1, results)
+  
+  # Income
+  model <- df %>%
+    drop_na(pb_income_num) %>%
+    pivot_longer(matches(paste0("y.*", y))) %>%
+    lmerTest::lmer(data = .,
+                   formula = value ~ pb_income_num + (1 | yb_lsmh_id)) %>%
+    summary()
+  
+  coefficients <- model$coefficients[-1,]
+  
+  results <- tibble(
+    DV = y,
+    IV = "pb_income_num",
+    est = coefficients["Estimate"],
+    se = coefficients["Std. Error"],
+    p = coefficients["Pr(>|t|)"]
+  )
+  
+  out_1 <- rbind(out_1, results)
+  
+}
+
+# p-adjust
+out_1$p <- p.adjust(out_1$p, "BH")
+
+# Report
+out_1 %>%
+  arrange(p) %>%
+  kable() %>%
+  kable_styling()
+```
+
+## Analysis 2: Belief Correlates
+
+#### 2a. Relationship Between Child Beliefs
+
+Repeated measures correlation (rmcorr)
+
+```{r}
+df_long_2a <- df %>%
+  select(yb_lsmh_id, paste0("yb_", beliefs), paste0("y3m_", beliefs)) %>%
+  pivot_longer(-yb_lsmh_id, 
+               names_sep = "_",
+               names_to = c("time", ".value"))
+
+out_2a <- tibble()
+
+for(x in beliefs) {
+  
+  for(y in beliefs) {
+    
+    if(x != y) {
+      
+      correlation <- rmcorr(
+        data = df_long_2a,
+        participant = "yb_lsmh_id",
+        measure1 = x,
+        measure2 = y
+      )
+      
+      results <- tibble(
+        x = x,
+        y = y,
+        r = correlation$r,
+        p = correlation$p
+      )
+      
+      out_2a <- rbind(out_2a, results)
+      
+    }
+    
+  }
+  
+}
+
+# Remove redundancies
+out_2a <- out_2a %>%
+  rowwise() %>%
+  mutate(xy = paste(sort(c(x, y)), collapse = " ")) %>%
+  ungroup() %>%
+  distinct(xy, .keep_all = T)
+
+
+# p-adjust
+out_2a$p <- p.adjust(out_2a$p, "BH")
+
+# Report
+out_2a %>%
+  arrange(p) %>%
+  kable() %>%
+  kable_styling()
+```
+
+#### 2b: Relationship Between parent Beliefs
+
+Repeated measures correlation (rmcorr)
+
+```{r}
+df_long_2b <- df %>%
+  select(yb_lsmh_id, paste0("pb_", beliefs), paste0("p3m_", beliefs)) %>%
+  pivot_longer(-yb_lsmh_id, 
+               names_sep = "_",
+               names_to = c("time", ".value"))
+
+out_2b <- tibble()
+
+for(x in beliefs) {
+  
+  for(y in beliefs) {
+    
+    if(x != y) {
+      
+      correlation <- rmcorr(
+        data = df_long_2b,
+        participant = "yb_lsmh_id",
+        measure1 = x,
+        measure2 = y
+      )
+      
+      results <- tibble(
+        x = x,
+        y = y,
+        r = correlation$r,
+        p = correlation$p
+      )
+      
+      out_2b <- rbind(out_2b, results)
+      
+    }
+    
+  }
+  
+}
+
+# Remove redundancies
+out_2b <- out_2b %>%
+  rowwise() %>%
+  mutate(xy = paste(sort(c(x, y)), collapse = " ")) %>%
+  ungroup() %>%
+  distinct(xy, .keep_all = T)
+
+
+# p-adjust
+out_2b$p <- p.adjust(out_2b$p, "BH")
+
+# Report
+out_2b %>%
+  arrange(p) %>%
+  kable() %>%
+  kable_styling()
+```
+
+#### 2c: Child Belief Correlates
+
+Repeated measures correlation (rmcorr)
+
+```{r}
+# Other constructs
+psychVariables <- c("cdi", "bhs", "pcsc", "iptq", "shs")
+
+df_long_2c <- df %>%
+  select(yb_lsmh_id, 
+         paste0("yb_", beliefs), paste0("y3m_", beliefs),
+         paste0("yb_", psychVariables), paste0("y3m_", psychVariables)) %>%
+  pivot_longer(-yb_lsmh_id, 
+               names_sep = "_",
+               names_to = c("time", ".value"))
+
+out_2c <- tibble()
+
+for(x in beliefs) {
+  
+  for(y in psychVariables) {
+    
+    correlation <- rmcorr(
+      data = df_long_2c,
+      participant = "yb_lsmh_id",
+      measure1 = x,
+      measure2 = y
+    )
+    
+    results <- tibble(
+      x = x,
+      y = y,
+      r = correlation$r,
+      p = correlation$p
+    )
+    
+    out_2c <- rbind(out_2c, results)
+      
+  }
+  
+}
+
+# p-adjust
+out_2c$p <- p.adjust(out_2c$p, "BH")
+
+# Report
+out_2c %>%
+  arrange(p) %>%
+  kable() %>%
+  kable_styling()
+```
+
+## Analysis 3: Child Belief Stability
+
+Spearman correlation (cor)
+
+```{r}
+out_3 <- tibble()
+
+for(x in beliefs) {
+  
+  correlation <- cor.test(
+    df[[paste0("yb_", x)]],
+    df[[paste0("y3m_", x)]],
+    use = "complete.obs"
+  )
+  
+  results <- tibble(
+    x = x,
+    r = correlation$estimate,
+    p = correlation$p.value
+  )
+  
+  out_3 <- rbind(out_3, results)
+  
+}
+
+# p-adjust
+out_3$p <- p.adjust(out_3$p, "BH")
+
+# Report
+out_3 %>%
+  arrange(p) %>%
+  kable() %>%
+  kable_styling()
+```
+
+## Analysis 4: Child and Parent Belief Agreement
+
+Repeated measures correlation (rmcorr)
+
+```{r}
+df_long_4_y <- df %>%
+  select(yb_lsmh_id, paste0("yb_", beliefs), paste0("y3m_", beliefs)) %>%
+  pivot_longer(-yb_lsmh_id, 
+               names_sep = "_",
+               names_to = c("time", ".value")) %>%
+  mutate(time = gsub("y", "", time))
+
+df_long_4_p <- df %>%
+  select(yb_lsmh_id, paste0("pb_", beliefs), paste0("p3m_", beliefs)) %>%
+  pivot_longer(-yb_lsmh_id, 
+               names_sep = "_",
+               names_to = c("time", ".value")) %>%
+  mutate(time = gsub("p", "", time))
+
+df_long_4 <- inner_join(df_long_4_y, df_long_4_p, 
+                        by = c("yb_lsmh_id", "time"),
+                        suffix = c("_youth", "_parent"))
+
+out_4 <- tibble()
+
+for(x in beliefs) {
+  
+  correlation <- rmcorr(
+    data = df_long_4,
+    participant = "yb_lsmh_id",
+    measure1 = paste0(x, "_youth"),
+    measure2 = paste0(x, "_parent")
+  )
+  
+  results <- tibble(
+    x = x,
+    y = y,
+    r = correlation$r,
+    p = correlation$p
+  )
+  
+  out_4 <- rbind(out_4, results)
+      
+}
+
+# p-adjust
+out_4$p <- p.adjust(out_4$p, "BH")
+
+# Report
+out_4 %>%
+  arrange(p) %>%
+  kable() %>%
+  kable_styling()
+```

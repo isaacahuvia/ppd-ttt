@@ -1,0 +1,38 @@
+---
+title: "Symptom Beliefs"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r, include = F}
+library(easypackages)
+libraries("tidyverse", "magrittr", "ggplot2", "scales", "corrplot", "knitr", "kableExtra", "poLCA", "conflicted")
+walk(c("filter", "select", "count", "group_by"), ~ conflict_prefer(., "dplyr"))
+
+rm(list = ls())
+
+
+df <- readRDS(file = "S:\\TRACK to TREAT\\Data\\Processed Data\\depression_belief_data.rds") %>%
+  select(pb_childethnicity_alt:p3m_def_other)
+```
+
+### Sample Description
+
+
+
+### Analysis 1: Child Beliefs and Child Demographics
+
+Repeated measures (hierarchical) logistic regression (glmer)
+
+### Analysis 2: Child Belief Correlates
+
+Repeated measures correlation (rmcorr)
+
+### Analysis 3: Child Belief Stability
+
+Spearman correlation (cor)
+
+### Analysis 4: Child and Parent Belief Agreement
+
+Spearman correlation (cor)
