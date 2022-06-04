@@ -14,7 +14,7 @@ rm(list = ls())
 df <- readRDS(file = "S:\\TRACK to TREAT\\Data\\Processed Data\\depression_belief_data.rds") %>%
   select(yb_lsmh_id:p3m_defOther)
 
-symptoms <- c("Appetite", "Concentrate", "Down", "Energy", "Interest", "Other", "Pace", "Self", "Sleep", "Suicide")
+symptoms <- c("Interest", "Down", "Sleep", "Energy", "Appetite", "Self", "Concentrate", "Pace", "Suicide", "Other")
 ```
 
 ## Sample Description
