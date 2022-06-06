@@ -5,7 +5,7 @@ output:
     df_print: paged
 ---
 
-```{r, include = F}
+```{r}
 library(easypackages)
 libraries("ggplot2", "scales", "knitr", "kableExtra", "lme4", "lmerTest", "rmcorr", "ltm", "tidyverse", "conflicted")
 walk(c("select", "filter", "mutate"), conflict_prefer, "dplyr")
