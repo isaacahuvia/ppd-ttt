@@ -10,7 +10,8 @@ rm(list = ls())
 
 
 ####  Load Data  ####
-raw <- read.csv("S:\\TRACK to TREAT\\Data\\Processed Data\\cleaned_qualtrics_ttt_phase_1.csv", stringsAsFactors = F)
+# raw <- read.csv("S:\\TRACK to TREAT\\Data\\Processed Data\\cleaned_qualtrics_ttt_phase_1.csv", stringsAsFactors = F)
+raw <- read.csv("S:\\TRACK to TREAT\\Data\\Processed Data\\cleaned_qualtrics_ttt_phase_1_fixed_220606.csv", stringsAsFactors = F)
 
 
 

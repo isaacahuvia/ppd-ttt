@@ -50,14 +50,18 @@ out_2 <- tibble()
 
 for(x in symptoms) {
   
+  baseline <- df[[paste0("yb_def", x)]]
+  followUp <- df[[paste0("y3m_def", x)]]
+  
   correlation <- cor.test(
-    df[[paste0("yb_def", x)]],
-    df[[paste0("y3m_def", x)]],
+    baseline,
+    followUp,
     use = "complete.obs"
   )
   
   results <- tibble(
     x = x,
+    agree = mean(baseline == followUp, na.rm = T),
     r = correlation$estimate,
     p = correlation$p.value
   )
@@ -74,6 +78,9 @@ out_2 %>%
   arrange(p) %>%
   kable() %>%
   kable_styling()
+
+mean(out_2$agree)
+mean(out_2$r)
 ```
 
 ## Analysis 3: Child and Parent Belief Agreement
@@ -103,16 +110,19 @@ out_3 <- tibble()
 
 for(x in symptoms) {
   
+  child <- paste0("def", x, "_youth")
+  parent <- paste0("def", x, "_parent")
+  
   correlation <- rmcorr(
     data = df_long_3,
     participant = "yb_lsmh_id",
-    measure1 = paste0("def", x, "_youth"),
-    measure2 = paste0("def", x, "_parent")
+    measure1 = child,
+    measure2 = parent
   )
   
   results <- tibble(
     x = x,
-    y = y,
+    agree = mean(df_long_3[[child]] == df_long_3[[parent]], na.rm = T),
     r = correlation$r,
     p = correlation$p
   )
@@ -129,4 +139,7 @@ out_3 %>%
   arrange(p) %>%
   kable() %>%
   kable_styling()
+
+mean(out_3$agree)
+mean(out_3$r, na.rm = T)
 ```

@@ -7,7 +7,8 @@ output:
 
 ```{r, include = F}
 library(easypackages)
-libraries("ggplot2", "scales", "knitr", "kableExtra", "lme4", "lmerTest", "rmcorr", "ltm", "tidyverse")
+libraries("ggplot2", "scales", "knitr", "kableExtra", "lme4", "lmerTest", "rmcorr", "ltm", "tidyverse", "conflicted")
+walk(c("select", "filter", "mutate"), conflict_prefer, "dplyr")
 
 rm(list = ls())
 
