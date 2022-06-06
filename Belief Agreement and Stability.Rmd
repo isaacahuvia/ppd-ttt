@@ -76,6 +76,14 @@ count(df, pb_childage) %>%
   mutate(prop = n / sum(n))
 count(df, pb_income) %>%
   mutate(prop = n / sum(n))
+
+df %>%
+  pivot_longer(matches(paste0(psychVariables, "$"))) %>%
+  mutate(name = gsub("^.*_", "", name)) %>%
+  group_by(name, yb_lsmh_id) %>%
+  summarize(personMean = mean(value, na.rm = T)) %>%
+  summarize(measureMean = mean(personMean, na.rm = T),
+            measureSD = sd(personMean, na.rm = T))
 ```
 
 ## Analysis 1: Child Beliefs and Child Demographics

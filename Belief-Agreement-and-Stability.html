@@ -2066,6 +2066,19 @@ psychVariables &lt;- c(&quot;cdi&quot;, &quot;bhs&quot;, &quot;pcsc&quot;, &quot
 {"columns":[{"label":["pb_income"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]},{"label":["prop"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"$0-$19,000","2":"9","3":"0.08490566"},{"1":"$100,000 - $119,000","2":"6","3":"0.05660377"},{"1":"$120,000-$140,000","2":"8","3":"0.07547170"},{"1":"$140,000+","2":"28","3":"0.26415094"},{"1":"$20,000-$39,000","2":"14","3":"0.13207547"},{"1":"$40,000-$59,000","2":"8","3":"0.07547170"},{"1":"$60,000-$79,000","2":"16","3":"0.15094340"},{"1":"$80,000 - $99,000","2":"17","3":"0.16037736"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
+<pre class="r"><code>df %&gt;%
+  pivot_longer(matches(paste0(psychVariables, &quot;$&quot;))) %&gt;%
+  mutate(name = gsub(&quot;^.*_&quot;, &quot;&quot;, name)) %&gt;%
+  group_by(name, yb_lsmh_id) %&gt;%
+  summarize(personMean = mean(value, na.rm = T)) %&gt;%
+  summarize(measureMean = mean(personMean, na.rm = T),
+            measureSD = sd(personMean, na.rm = T))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;name&#39;. You can override using the `.groups` argument.</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["name"],"name":[1],"type":["chr"],"align":["left"]},{"label":["measureMean"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["measureSD"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"bhs","2":"4.207547","3":"3.336571"},{"1":"cdi","2":"32.419048","3":"10.215732"},{"1":"iptq","2":"10.061321","3":"3.143931"},{"1":"pcsc","2":"74.638095","3":"12.130598"},{"1":"shs","2":"19.593137","3":"12.540376"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
 </div>
 <div id="analysis-1-child-beliefs-and-child-demographics" class="section level2">
 <h2>Analysis 1: Child Beliefs and Child Demographics</h2>

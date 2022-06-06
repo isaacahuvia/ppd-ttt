@@ -76,18 +76,18 @@ df <- raw %>%
     
     ## Psychological measures
     # Baseline, youth
-    yb_cdi = select(., matches("yb_cdi_[0-9]*$")) %>% rowMeans(),
-    yb_bhs = select(., matches("yb_bhs_[0-9]*$")) %>% rowMeans(),
-    yb_pcsc = select(., matches("yb_pcsc_[0-9]*$")) %>% rowMeans(),
-    yb_iptq = select(., matches("yb_iptq_[0-9]*$")) %>% rowMeans(),
-    yb_shs = select(., matches("yb_shs_[0-9]*$")) %>% rowMeans(),
+    yb_cdi = select(., matches("yb_cdi_[0-9]*$")) %>% rowSums(),
+    yb_bhs = select(., matches("yb_bhs_[0-9]*$")) %>% rowSums(),
+    yb_pcsc = select(., matches("yb_pcsc_[0-9]*$")) %>% rowSums(),
+    yb_iptq = select(., matches("yb_iptq_[0-9]*$")) %>% rowSums(),
+    yb_shs = select(., matches("yb_shs_[0-9]*$")) %>% rowSums(),
 
     # Follow-up, youth
-    y3m_cdi = select(., matches("y3m_cdi_[0-9]*$")) %>% rowMeans(),
-    y3m_bhs = select(., matches("y3m_bhs_[0-9]*$")) %>% rowMeans(),
-    y3m_pcsc = select(., matches("y3m_pcsc_[0-9]*$")) %>% rowMeans(),
-    y3m_iptq = select(., matches("y3m_iptq_[0-9]*$")) %>% rowMeans(),
-    y3m_shs = select(., matches("y3m_shs_[0-9]*$")) %>% rowMeans(),
+    y3m_cdi = select(., matches("y3m_cdi_[0-9]*$")) %>% rowSums(),
+    y3m_bhs = select(., matches("y3m_bhs_[0-9]*$")) %>% rowSums(),
+    y3m_pcsc = select(., matches("y3m_pcsc_[0-9]*$")) %>% rowSums(),
+    y3m_iptq = select(., matches("y3m_iptq_[0-9]*$")) %>% rowSums(),
+    y3m_shs = select(., matches("y3m_shs_[0-9]*$")) %>% rowSums(),
     
     
   ) %>%
