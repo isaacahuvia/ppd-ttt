@@ -392,6 +392,8 @@ out_3 %>%
   arrange(p) %>%
   kable() %>%
   kable_styling()
+
+mean(out_3$r, na.rm = T)
 ```
 
 ## Analysis 4: Child and Parent Belief Agreement
@@ -447,4 +449,6 @@ out_4 %>%
   arrange(p) %>%
   kable() %>%
   kable_styling()
+
+mean(out_4$r, na.rm = T)
 ```
