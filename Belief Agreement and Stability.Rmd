@@ -12,11 +12,26 @@ walk(c("select", "filter", "mutate"), conflict_prefer, "dplyr")
 
 rm(list = ls())
 
+# Belief outcomes - we will run regressions for each of these
+beliefs <- c("depPermanence", "causeBrain", "causeEnv", "changeBrain", "changeEnv", "lessPermTherapy", "lessPermMed")
+
+# Other constructs
+psychVariables <- c("cdi", "bhs", "pcsc", "iptq", "shs")
+
 df <- readRDS(file = "S:\\TRACK to TREAT\\Data\\Processed Data\\depression_belief_data.rds") %>%
   select(-matches("def_"),
          -matches("other_text$"),
          -pb_childethnicity_alt) %>%
   mutate(yb_lsmh_id = factor(yb_lsmh_id))
+
+# Quickly print the raw youth responses to compare distributions
+df %>%
+  select(matches(paste0("y.*", beliefs))) %>%
+  pivot_longer(matches(paste0("y.*", beliefs))) %>%
+  mutate(name = gsub(".*_", "", name)) %>%
+  group_by(name) %>%
+  summarize(mean = mean(value, na.rm = T),
+            sd = sd(value, na.rm = T))
 
 # Standardize depression belief variables
 df <- df %>%
@@ -37,12 +52,6 @@ df <- df %>%
     pb_income == "$120,000-$140,000" ~ 7,
     pb_income == "$140,000+" ~ 8
   ))
-
-# Belief outcomes - we will run regressions for each of these
-beliefs <- c("depPermanence", "causeBrain", "causeEnv", "changeBrain", "changeEnv", "lessPermTherapy", "lessPermMed")
-
-# Other constructs
-psychVariables <- c("cdi", "bhs", "pcsc", "iptq", "shs")
 ```
 
 ## Reliability
@@ -440,7 +449,6 @@ for(x in beliefs) {
   
   results <- tibble(
     x = x,
-    y = y,
     r = correlation$r,
     p = correlation$p
   )
