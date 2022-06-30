@@ -33,12 +33,15 @@ count(df, pb_income) %>%
 ## Analysis 1: Description of Symptom Beliefs
 
 ```{r}
-df %>%
+table_1 <- df %>%
   select(matches("y.*_def")) %>%
   pivot_longer(everything()) %>%
   mutate(name = gsub("^.*_", "", name)) %>%
   group_by(name) %>%
   summarize(prop = mean(value, na.rm = T))
+
+table_1
+saveRDS(table_1, file = "S:\\TRACK to TREAT\\Data\\Processed Data\\Table 1.rds")
 ```
 
 ## Analysis 2: Child Belief Stability

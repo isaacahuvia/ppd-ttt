@@ -1912,6 +1912,8 @@ df &lt;- readRDS(file = &quot;S:\\TRACK to TREAT\\Data\\Processed Data\\depressi
 symptoms &lt;- c(&quot;Interest&quot;, &quot;Down&quot;, &quot;Sleep&quot;, &quot;Energy&quot;, &quot;Appetite&quot;, &quot;Self&quot;, &quot;Concentrate&quot;, &quot;Pace&quot;, &quot;Suicide&quot;, &quot;Other&quot;)</code></pre>
 <div id="sample-description" class="section level2">
 <h2>Sample Description</h2>
+<pre class="r"><code>nrow(df)</code></pre>
+<pre><code>## [1] 106</code></pre>
 <pre class="r"><code>count(df, pb_childethnicity_alt) %&gt;%
   mutate(prop = n / sum(n))</code></pre>
 <div data-pagedtable="false">
@@ -1943,17 +1945,20 @@ symptoms &lt;- c(&quot;Interest&quot;, &quot;Down&quot;, &quot;Sleep&quot;, &quo
 </div>
 <div id="analysis-1-description-of-symptom-beliefs" class="section level2">
 <h2>Analysis 1: Description of Symptom Beliefs</h2>
-<pre class="r"><code>df %&gt;%
+<pre class="r"><code>table_1 &lt;- df %&gt;%
   select(matches(&quot;y.*_def&quot;)) %&gt;%
   pivot_longer(everything()) %&gt;%
   mutate(name = gsub(&quot;^.*_&quot;, &quot;&quot;, name)) %&gt;%
   group_by(name) %&gt;%
-  summarize(prop = mean(value, na.rm = T))</code></pre>
+  summarize(prop = mean(value, na.rm = T))
+
+table_1</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
 {"columns":[{"label":["name"],"name":[1],"type":["chr"],"align":["left"]},{"label":["prop"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"defAppetite","2":"0.72916667"},{"1":"defConcentrate","2":"0.76041667"},{"1":"defDown","2":"0.85416667"},{"1":"defEnergy","2":"0.79687500"},{"1":"defInterest","2":"0.77604167"},{"1":"defOther","2":"0.08333333"},{"1":"defPace","2":"0.53645833"},{"1":"defSelf","2":"0.82812500"},{"1":"defSleep","2":"0.78645833"},{"1":"defSuicide","2":"0.73437500"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
+<pre class="r"><code>saveRDS(table_1, file = &quot;S:\\TRACK to TREAT\\Data\\Processed Data\\Table 1.rds&quot;)</code></pre>
 </div>
 <div id="analysis-2-child-belief-stability" class="section level2">
 <h2>Analysis 2: Child Belief Stability</h2>
