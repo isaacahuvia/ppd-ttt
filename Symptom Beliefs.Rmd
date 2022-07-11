@@ -34,7 +34,7 @@ count(df, pb_income) %>%
 
 ```{r}
 table_1 <- df %>%
-  select(matches("y.*_def")) %>%
+  select(matches("y.*_def"), -matches("text")) %>%
   pivot_longer(everything()) %>%
   mutate(name = gsub("^.*_", "", name)) %>%
   group_by(name) %>%
@@ -42,6 +42,65 @@ table_1 <- df %>%
 
 table_1
 saveRDS(table_1, file = "S:\\TRACK to TREAT\\Data\\Processed Data\\Table 1.rds")
+```
+
+"Other" symptoms
+
+```{r}
+unique(df$yb_defOther_text)
+unique(df$y3m_defOther_text)
+unique(df$pb_defOther_text)
+unique(df$p3m_defOther_text)
+```
+
+How many endorsed all DSM symptoms?
+
+```{r}
+df %>%
+  select(yb_lsmh_id, matches("y.*_def"), -matches("other")) %>%
+  pivot_longer(matches("def")) %>%
+  group_by(yb_lsmh_id) %>%
+  summarize(prop_symptoms_endorsed = mean(value, na.rm = T)) %>%
+  count(prop_symptoms_endorsed) %>%
+  mutate(total = sum(n),
+         prop = n / sum(n))
+```
+
+Unique combinations
+
+```{r}
+yb_combinations <- df %>%
+  mutate(combination = paste(yb_defInterest,
+                             yb_defDown,
+                             yb_defSleep,
+                             yb_defEnergy,
+                             yb_defAppetite,
+                             yb_defSelf,
+                             yb_defConcentrate,
+                             yb_defPace,
+                             yb_defSuicide,
+                             yb_defOther,
+                             yb_defOther_text)) %>%
+  pull(combination)
+
+y3m_combinations <- df %>%
+  mutate(combination = paste(y3m_defInterest,
+                             y3m_defDown,
+                             y3m_defSleep,
+                             y3m_defEnergy,
+                             y3m_defAppetite,
+                             y3m_defSelf,
+                             y3m_defConcentrate,
+                             y3m_defPace,
+                             y3m_defSuicide,
+                             y3m_defOther,
+                             y3m_defOther_text)) %>%
+  pull(combination)
+
+combinations <- c(yb_combinations, y3m_combinations) %>%
+  unique()
+
+saveRDS(combinations, file = "S:\\TRACK to TREAT\\Data\\Processed Data\\Combinations.rds")
 ```
 
 ## Analysis 2: Child Belief Stability

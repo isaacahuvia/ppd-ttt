@@ -27,6 +27,7 @@ names(raw) <- gsub("ppd_1_.*trouble_concentrating.*$", "defConcentrate", names(r
 names(raw) <- gsub("ppd_1_.*fidgety.*$", "defPace", names(raw))
 names(raw) <- gsub("ppd_1_.*better_off_dead.*$", "defSuicide", names(raw))
 names(raw) <- gsub("ppd_1_something_else", "defOther", names(raw))
+names(raw) <- gsub("ppd_1_10_text", "defOther_text", names(raw))
 
 names(raw) <- gsub("ppd_2", "depPermanence", names(raw))
 
